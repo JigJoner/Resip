@@ -2,20 +2,19 @@ package com.example.resip.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.resip.data.database.preIngredient.PreIngredient
 import com.example.resip.data.repository.IngredientRepository
 import com.example.resip.model.Ingredient
-import com.example.resip.model.MeasurementUnit
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.random.RandomGenerator
-import kotlin.random.Random
+
+data class ResipViewModels(
+    val ingredientsViewModel: IngredientsViewModel,
+    val recipesViewModel: RecipesViewModel
+)
 
 class LoginViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(1)
@@ -35,6 +34,10 @@ class IngredientsViewModel(private val repo: IngredientRepository) : ViewModel()
 
     // public stateflow: read only
     val uiState: StateFlow<IngredientsUiState> = _uiState.asStateFlow()
+
+    fun addIngredientPopup(switch: Boolean){
+        _uiState.value = _uiState.value.copy(addIngredientPopup = switch)
+    }
 
     //By calling this, we recompose automatically
     suspend fun updateQuantity(quantity: Int, item: Ingredient){

@@ -13,6 +13,11 @@ object ResipViewModelProvider {
         initializer {
             IngredientsViewModel(ResipApplication().container.ingredientRepository)
         }
+
+        // Initializer for IngredientViewModel
+        initializer {
+            RecipesViewModel()
+        }
     }
     fun CreationExtras.ResipApplication(): ResipApplication =
         (this[AndroidViewModelFactory.APPLICATION_KEY] as ResipApplication)

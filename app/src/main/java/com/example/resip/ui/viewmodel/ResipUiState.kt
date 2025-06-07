@@ -1,7 +1,6 @@
 package com.example.resip.ui.viewmodel
 
 import com.example.resip.model.Ingredient
-import com.example.resip.ui.components.ListTypes
 
 data class LoginUiState(
     val email: String = "",
@@ -24,7 +23,8 @@ data class IngredientsUiState(
     val error: String? = null,
     val ownedIngredients: List<Ingredient> = emptyList(),
     val preIngredients: List<Ingredient> = emptyList(),
-    val popupId: String? = null
+    val popupId: String? = null,
+    val addIngredientPopup: Boolean = false
 )
 data class BrowseUiState(
     val isLoading: Boolean = false,

@@ -1,10 +1,12 @@
 package com.example.resip.ui.screens
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,11 +19,14 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
 import com.example.compose.ResiPTheme
 import com.example.resip.R
 import com.example.resip.ResipApp
+import com.example.resip.navigation.ResipScreen
 import com.example.resip.ui.components.EmailTextfield
 import com.example.resip.ui.components.LoginButton
 import com.example.resip.ui.components.PasswordTextfield
@@ -43,35 +48,37 @@ fun Previewer() {
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    screenType: ScreenType
+    screenType: ScreenType,
+    navController: NavController
 ) {
     when {
         screenType == ScreenType.PORTRAIT_PHONE || screenType == ScreenType.PORTRAIT_TABLET -> {
             LoginScreenPortrait(
                 modifier = modifier
+                    .fillMaxSize()
                     .padding(dimensionResource(R.dimen.spacing_large))
                     .sizeIn(
                         minWidth = dimensionResource(R.dimen.compact_width_min),
-                        minHeight = dimensionResource(R.dimen.medium_height_min),
-                        maxHeight = dimensionResource(R.dimen.medium_height_max)
-                    )
-                    .verticalScroll(rememberScrollState()),
-                screenType = screenType
+                        minHeight = dimensionResource(R.dimen.medium_height_min)
+                    ),
+                screenType = screenType,
+                navController= navController
             )
         }
 
         screenType == ScreenType.LANDSCAPE_PHONE || screenType == ScreenType.LANDSCAPE_TABLET -> {
-            LoginScreenLandscape(
-                modifier = modifier
-                    .padding(dimensionResource(R.dimen.spacing_large))
-                    .sizeIn(
-                        minWidth = dimensionResource(R.dimen.compact_width_min),
-                        minHeight = dimensionResource(R.dimen.medium_height_min),
-                        maxHeight = dimensionResource(R.dimen.medium_height_max)
-                    )
-                    .verticalScroll(rememberScrollState()),
-                screenType = screenType
-            )
+//            LoginScreenLandscape(
+//                modifier = modifier
+//                    .padding(dimensionResource(R.dimen.spacing_large))
+//                    .sizeIn(
+//                        minWidth = dimensionResource(R.dimen.compact_width_min),
+//                        minHeight = dimensionResource(R.dimen.medium_height_min),
+//                        maxHeight = dimensionResource(R.dimen.medium_height_max)
+//                    )
+//                    .verticalScroll(rememberScrollState()),
+//                screenType = screenType,
+//                navController= navController
+//            )
         }
     }
 }
@@ -79,7 +86,8 @@ fun LoginScreen(
 @Composable
 fun LoginScreenLandscape(
     modifier: Modifier = Modifier,
-    screenType: ScreenType
+    screenType: ScreenType,
+    navController: NavController
 ) {
     Row(
         modifier = modifier,
@@ -94,7 +102,8 @@ fun LoginScreenLandscape(
         )
         LoginTextSection(
             modifier = Modifier
-                .weight(2.5f)
+                .weight(2.5f),
+            navController= navController
         )
     }
 }
@@ -102,12 +111,14 @@ fun LoginScreenLandscape(
 @Composable
 fun LoginScreenPortrait(
     modifier: Modifier = Modifier,
-    screenType: ScreenType
+    screenType: ScreenType,
+    navController: NavController
 ) {
     Column(
         modifier = modifier
             .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         ResipLogo(
             modifier = Modifier
@@ -119,15 +130,17 @@ fun LoginScreenPortrait(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            navController= navController
         )
     }
 }
 
 @Composable
 fun LoginTextSection(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navController: NavController
 ) {
-    Log.d("TEST", "Textfield")
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -154,8 +167,11 @@ fun LoginTextSection(
 
             LoginButton(
                 modifier = Modifier
-                    .weight(1f)
-            ) { }
+                    .weight(1f),
+                onClick = {
+                    navController.navigate(route = ResipScreen.HomePage.name)
+                }
+            )
             Spacer(
                 modifier = Modifier
                     .weight(0.2f)

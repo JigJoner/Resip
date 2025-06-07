@@ -26,11 +26,11 @@ fun ResipNavBar(
     modifier: Modifier = Modifier,
     selectedRoute: MutableState<Int>,
     navController: NavController,
-    windowInsets: WindowInsets,
 ) {
     NavigationBar(
-        modifier = Modifier,
-        windowInsets = windowInsets
+        modifier = modifier
+            .windowInsetsPadding(WindowInsets.navigationBars),
+        windowInsets = WindowInsets.navigationBars
     ) {
         NavBarItems.entries.forEachIndexed { index, destination ->
             NavigationBarItem(
@@ -58,7 +58,6 @@ fun ResipNavBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResipTopBar(
-    windowInsets: WindowInsets,
     modifier: Modifier = Modifier,
     titleContent: @Composable () -> Unit,
     navIconContent: (@Composable () -> Unit)? = null,
@@ -69,7 +68,7 @@ fun ResipTopBar(
         actions = { actionsContent?.invoke() },
         modifier = modifier
 //            .height(dimensionResource(R.dimen.topbar_height))
-            .windowInsetsPadding(windowInsets),
+            .windowInsetsPadding(WindowInsets.navigationBars),
         title = titleContent,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,
