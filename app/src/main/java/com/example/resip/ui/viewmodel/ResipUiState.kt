@@ -19,9 +19,12 @@ data class RecipesUiState(
     val error: String? = null
 )
 data class IngredientsUiState(
-    val isLoading: Boolean = true,
+    val isOwnedLoading: Boolean = true,
+    val isPreLoading: Boolean = true,
     val error: String? = null,
-    val ingredients: List<Ingredient> = emptyList()
+    val ownedIngredients: List<Ingredient> = emptyList(),
+    val preIngredients: List<Ingredient> = emptyList(),
+    val popupId: String? = null
 )
 data class BrowseUiState(
     val isLoading: Boolean = false,

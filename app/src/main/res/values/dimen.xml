@@ -4,7 +4,7 @@
     <dimen name="padding_medium">16dp</dimen>
 
 <!--    Sizes   -->
-    <dimen name="image_size">64dp</dimen>
+    <dimen name="image_width">64dp</dimen>
 
     <dimen name="compact_width_min">300dp</dimen>
     <dimen name="compact_width_max">411dp</dimen>
@@ -19,9 +19,11 @@
     <dimen name="login_logo_large_width_max">300dp</dimen>
 
     <dimen name="textfield_height">56dp</dimen>
+    <dimen name="numfield_width">120dp</dimen>
 
     <dimen name="button_height">48dp</dimen>
 
+    <dimen name="topbar_height">96dp</dimen>
 <!--    Spacing   -->
     <dimen name="screen_edge_medium">16dp</dimen> <!-- The content padding (NOT SCAFFOLD PADDING) from edge of screen -->
     <dimen name="screen_edge_small">8dp</dimen>

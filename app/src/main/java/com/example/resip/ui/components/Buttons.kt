@@ -1,18 +1,67 @@
 package com.example.resip.ui.components
 
 import android.util.Log
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.example.resip.R
 
 
 private const val TAG = "Button Activity"
+
+@Composable
+fun ResipIconButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    icon: ImageVector,
+    contentDescription: String?
+){
+    IconButton(
+        modifier = modifier
+            .height(dimensionResource(R.dimen.button_height))
+            .aspectRatio(1f),
+        onClick = onClick,
+        enabled = true,
+
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription
+        )
+    }
+}
+
+@Composable
+fun DeleteButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+){
+    IconButton(
+        modifier = modifier
+            .height(dimensionResource(R.dimen.button_height))
+            .aspectRatio(1f),
+        onClick = onClick
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Delete,
+            contentDescription = null
+        )
+    }
+}
 
 @Composable
 fun ButtonType1(

@@ -1,12 +1,18 @@
 package com.example.resip
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -31,6 +37,9 @@ import com.example.resip.navigation.NavBarItems
 import com.example.resip.navigation.ResipNavHost
 import com.example.resip.navigation.ResipScreen
 import com.example.resip.ui.components.ListTypes
+import com.example.resip.ui.components.ResipIconButton
+import com.example.resip.ui.components.ResipNavBar
+import com.example.resip.ui.components.ResipTopBar
 import com.example.resip.ui.utils.ScreenType
 import com.example.resip.ui.viewmodel.IngredientsViewModel
 import com.example.resip.ui.viewmodel.LoginViewModel
@@ -68,55 +77,22 @@ fun ResipApp(
     val navController = rememberNavController()
     val startRoute = ResipScreen.Login
 
+    // This is the state of the current Screen.
+    // Updates when pushing entries, but not popping
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    var selectedRoute by rememberSaveable { mutableStateOf(startRoute.ordinal) }
+
+    var selectedRoute = rememberSaveable { mutableStateOf(startRoute.ordinal) }
     var listType: ListTypes = ListTypes.Card
-//    var viewModel: ViewModel = viewModel(factory = ResipViewModelProvider.Factory) as IngredientsViewModel
-//    when (selectedRoute) {
-//        ResipScreen.Login.ordinal -> {
-//        }
-//
-//        ResipScreen.HomePage.ordinal -> {
-//
-//        }
-//
-//        ResipScreen.Recipe.ordinal -> {
-//        }
-//
-//        ResipScreen.Ingredient.ordinal -> {
-////            viewModel = viewModel(factory = ResipViewModelProvider.Factory)
-//        }
-//    }
 
     Scaffold(
         bottomBar = {
             if (!(currentRoute.equals(ResipScreen.Login.name))) {
-                NavigationBar(
-                    modifier = Modifier,
+                ResipNavBar(
+                    selectedRoute = selectedRoute,
+                    navController = navController,
                     windowInsets = WindowInsets.navigationBars
-                ) {
-                    NavBarItems.entries.forEachIndexed { index, destination ->
-                        NavigationBarItem(
-                            selected = selectedRoute == index,
-                            onClick = {
-                                navController.navigate(route = destination.name)
-                                selectedRoute = index
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = destination.icon,
-                                    contentDescription = "test"
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = destination.name
-                                )
-                            }
-                        )
-                    }
-                }
+                )
             } else { // TEMPORARY
                 NavigationBar(
                     modifier = Modifier,
@@ -145,20 +121,70 @@ fun ResipApp(
             }
         },
         topBar = {
-            if (!(currentRoute.equals(ResipScreen.Login.name))) {
-                TopAppBar(
-                    modifier = Modifier
-                        .height(96.dp),
-                    windowInsets = WindowInsets.navigationBars,
-                    title = {
-                        Text("Test")
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),
-                )
+            var actionsContent: (@Composable () -> Unit)? = null
+            var titleContent: @Composable () -> Unit = {}
+            when (currentRoute){
+                ResipScreen.Ingredient.name ->{
+                    titleContent = {
+                        Text(ResipScreen.Ingredient.name)
+                    }
+                    actionsContent = {
+                        Row(
+                            modifier = Modifier
+                        ){
+                            ResipIconButton(
+                                onClick = {
+
+                                },
+                                icon = Icons.Filled.Add,
+                                contentDescription = null
+                            )
+                            ResipIconButton(
+                                onClick = {
+
+                                },
+                                icon = Icons.Filled.Delete,
+                                contentDescription = null
+                            )
+
+                        }
+                    }
+                }
+                else ->{
+
+                }
             }
+            ResipTopBar(
+                modifier = Modifier,
+                windowInsets = WindowInsets.navigationBars,
+                titleContent = titleContent,
+                navIconContent = {
+                    IconButton(onClick = {
+                        // Popping the navstack doesn't update the currentState State
+                        navController.popBackStack()
+                        // Thus, you need to use navController?.currentBackStackEntry?.destination?.route manually
+                        selectedRoute.value = NavBarItems.valueOf(navController?.currentBackStackEntry?.destination?.route ?: ResipScreen.HomePage.name).ordinal
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actionsContent = actionsContent
+            )
+            //
+//            if (!(currentRoute.equals(ResipScreen.Login.name))) {
+//                TopAppBar(
+//                    modifier = Modifier
+//                        .height(96.dp),
+//                    windowInsets = WindowInsets.navigationBars,
+//                    title = {
+//                        Text("Test")
+//                    },
+//                    colors = TopAppBarDefaults.topAppBarColors(
+//                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+//                        titleContentColor = MaterialTheme.colorScheme.primary,
+//                    ),
+//                )
+//            }
         }
     ) { innerPadding ->
         ResipNavHost(

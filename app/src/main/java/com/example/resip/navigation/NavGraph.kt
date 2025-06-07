@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Kitchen
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,6 +35,7 @@ import com.example.resip.ui.screens.LoginScreen
 import com.example.resip.ui.screens.RecipesScreen
 import com.example.resip.ui.utils.ScreenType
 import com.example.resip.ui.viewmodel.IngredientsViewModel
+import com.example.resip.ui.viewmodel.ResipViewModelProvider
 
 enum class ResipScreen(
     @StringRes val title: Int,
@@ -58,9 +61,17 @@ enum class NavBarItems(
     Browse(title = R.string.browser, icon = Icons.Rounded.Explore)
 }
 
+enum class TempNavItems(
+    val title: String,
+//    @StringRes val contentDescription: Int,
+    val icon: ImageVector
+){
+    Temp(title = "Temp", icon = Icons.Filled.ArrowUpward)
+}
+
 @Composable
 fun ResipNavHost(
-    navController: NavHostController = rememberNavController(),
+    navController: NavHostController,
     modifier: Modifier = Modifier,
     screenType: ScreenType,
     start: String,
@@ -105,10 +116,12 @@ fun ResipNavHost(
         }
         composable(route = ResipScreen.Ingredient.name) {
             Log.d("NAV", "Ingredient")
+            val viewModel: IngredientsViewModel = viewModel(factory = ResipViewModelProvider.Factory)
             IngredientsScreen(
                 modifier = modifier,
                 screenType = screenType,
-                listType = listType
+                listType = listType,
+                viewModel = viewModel
             )
         }
         composable(route = ResipScreen.Browse.name) {
