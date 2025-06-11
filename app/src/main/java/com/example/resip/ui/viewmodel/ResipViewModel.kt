@@ -1,5 +1,6 @@
 package com.example.resip.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.resip.data.repository.IngredientRepository
@@ -57,6 +58,29 @@ class IngredientsViewModel(private val repo: IngredientRepository) : ViewModel()
 
     fun removePopup(){
         _uiState.value = _uiState.value.copy(popupId = null)
+    }
+
+    fun loadAddIngredientPopup(){
+        _uiState.value = _uiState.value.copy(addIngredientPopup = true)
+    }
+
+    fun removeAddIngredientPopup(){
+        _uiState.value = _uiState.value.copy(addIngredientPopup = false)
+    }
+
+    fun deleteOwnedIngredient(name: String){
+        var test: Ingredient
+        viewModelScope.launch {
+            try{
+                test = _uiState.value.ownedIngredients.filter{ it -> it.name.equals(name)}[0]
+                repo.deleteOwnedIngredient(
+                    test
+                )
+            }catch(e: Exception){
+                Log.e("IngredientViewModel", e.toString())
+            }
+        }
+
     }
 
     init {

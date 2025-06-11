@@ -6,9 +6,9 @@ import kotlinx.serialization.Serializable
 enum class MeasurementUnit(val unit: String){
     ML(unit = "ml"),
     G(unit="g"),
-    Large(unit="L"),
-    Medium(unit="M"),
-    Small(unit="S")
+    Large(unit="Large"),
+    Medium(unit="Med"),
+    Small(unit="Small")
 }
 
 @Serializable

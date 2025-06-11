@@ -24,7 +24,7 @@ data class IngredientsUiState(
     val ownedIngredients: List<Ingredient> = emptyList(),
     val preIngredients: List<Ingredient> = emptyList(),
     val popupId: String? = null,
-    val addIngredientPopup: Boolean = false
+    val addIngredientPopup: Boolean = false,
 )
 data class BrowseUiState(
     val isLoading: Boolean = false,

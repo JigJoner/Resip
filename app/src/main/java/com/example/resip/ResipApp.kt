@@ -1,8 +1,12 @@
 package com.example.resip
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -35,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -106,7 +111,7 @@ fun ResipApp(
                         ) {
                             ResipIconButton(
                                 onClick = {
-                                    viewModels.ingredientsViewModel
+                                    viewModels.ingredientsViewModel.loadAddIngredientPopup()
                                 },
                                 icon = Icons.Filled.Add,
                                 contentDescription = null
@@ -129,7 +134,6 @@ fun ResipApp(
             }
             ResipTopBar(
                 modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars)
                     .alpha(isShow),
                 titleContent = titleContent,
                 navIconContent = {
@@ -159,11 +163,23 @@ fun ResipApp(
         ResipNavHost(
             modifier = modifier
                 .padding(innerPadding),
+
             navController = navController,
             screenType = screenType,
             startDestination = ResipScreen.Login.name,
             viewModels = viewModels,
         )
+        BackHandler {
+            val currentBackStackEntry = navController.currentBackStackEntry
+            val canGoBack = navController.previousBackStackEntry != null
+                    && navController.previousBackStackEntry?.destination?.route != ResipScreen.Login.name
+
+            if (canGoBack) {
+                navController.popBackStack()
+                selectedRoute.value = ResipScreen.valueOf(navController.currentBackStackEntry?.destination?.route ?: ResipScreen.Login.name).ordinal
+
+            }
+        }
     }
 }
 

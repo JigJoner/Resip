@@ -46,11 +46,11 @@ enum class ResipScreen(
 //    @StringRes val contentDescription: Int,
     val icon: ImageVector
 ) {
-    Login(title = R.string.login, icon = Icons.Rounded.Person),
     HomePage(title = R.string.homepage, icon = Icons.Rounded.Home),
     Recipe(title = R.string.recipe, icon = Icons.Rounded.RestaurantMenu),
     Ingredient(title = R.string.ingredient, icon = Icons.Rounded.Kitchen),
     Browse(title = R.string.browser, icon = Icons.Rounded.Explore),
+    Login(title = R.string.login, icon = Icons.Rounded.Person),
     Setting(title = R.string.setting, icon = Icons.Rounded.Settings)
 }
 

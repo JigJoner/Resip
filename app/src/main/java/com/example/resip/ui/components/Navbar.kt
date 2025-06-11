@@ -66,9 +66,9 @@ fun ResipTopBar(
     TopAppBar(
         navigationIcon = { navIconContent?.invoke() },
         actions = { actionsContent?.invoke() },
-        modifier = modifier
+        modifier = modifier,
 //            .height(dimensionResource(R.dimen.topbar_height))
-            .windowInsetsPadding(WindowInsets.navigationBars),
+//            .windowInsetsPadding(WindowInsets.navigationBars),
         title = titleContent,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer,

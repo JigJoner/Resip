@@ -34,6 +34,10 @@ class IngredientRepository(
         ownedIngredientDao.update(item.toOwnedIngredientEntity())
     }
 
+    suspend fun deleteOwnedIngredient(item: Ingredient){
+        ownedIngredientDao.delete(item.toOwnedIngredientEntity())
+    }
+
 //    fun getAllIngredientsStream(): Flow<List<Ingredient>> {
 //        return ingredientDao.getAllIngredients().map { it.map { it.toDomain() } }
 //    }
