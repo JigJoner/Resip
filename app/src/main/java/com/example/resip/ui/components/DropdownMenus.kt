@@ -77,7 +77,7 @@ fun SearchableDropDownMenu(
             list2.filter { it.contains(text, ignoreCase = true) }
         }
     }
-
+    onClick(text)
     val focusManager = LocalFocusManager.current
     Box(
         modifier = modifier
@@ -153,7 +153,7 @@ fun SearchableDropDownMenu(
                     onClick = {
                         text = name
                         focusManager.clearFocus()
-                        onClick(name)
+                        onClick(text)
                     }
                 )
             }

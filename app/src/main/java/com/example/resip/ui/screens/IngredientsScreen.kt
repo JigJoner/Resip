@@ -1,5 +1,6 @@
 package com.example.resip.ui.screens
 
+import androidx.compose.material3.Icon
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -25,6 +26,9 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
@@ -32,6 +36,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -257,37 +262,70 @@ fun AddIngredientPopup(
     viewModel: IngredientsViewModel
 ) {
     var showAlert by rememberSaveable { mutableStateOf(false) }
+    var showAlert2 by rememberSaveable { mutableStateOf(false) }
     var itemToRemove by rememberSaveable { mutableStateOf("") }
     ResipPopup(
         onDismiss = dismissRequest,
         modifier = modifier
             .padding(dimensionResource(R.dimen.spacing_large))
     ) {
-        var step by rememberSaveable { mutableStateOf(1) }
+        var step by rememberSaveable { mutableStateOf(0) }
 
-        val list by rememberSaveable {mutableStateOf((viewModel.getPreIngredients().map { it -> it.name }))}
-        val list2 by rememberSaveable {mutableStateOf (viewModel.getOwnedIngredients().map { it -> it.name }) }
+        val PreList by rememberSaveable {mutableStateOf((viewModel.getPreIngredients().map { it -> it.name }))}
+        val OwnedList by rememberSaveable {mutableStateOf (viewModel.getOwnedIngredients().map { it -> it.name }) }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ){
+            SearchableDropDownMenu(
+                list = PreList,
+                list2 = OwnedList,
 
-        when(step) {
-            1 -> {
-                SearchableDropDownMenu(
-                    list = list,
-                    list2 = list2,
-
-                    onClick = { it ->
-                        if (list.contains(it)) {
-
-                        } else {
-
-                        }
-                    },
-                    onDelete = { it ->
-                        showAlert = true
-                        itemToRemove = it
+                onClick = { it ->
+                    step = when{
+                        PreList.contains(it) -> 1
+                        OwnedList.contains(it) -> 2
+                        else -> 0
                     }
-                )
+                },
+                onDelete = { it ->
+                    showAlert = true
+                    itemToRemove = it
+                }
+            )
+            when(step) {
+                1 -> {
+
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = "Confirm")
+                    }
+                }
+                2-> {
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = "Confirm")
+                    }
+                }
+                else -> {
+
+                }
+            }
+            IconButton(
+                onClick = {showAlert2 = true},
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+            ) {
+                Icon(Icons.Filled.Close, contentDescription = "Cancel")
             }
         }
+
     }
     if (showAlert){
         WarningPopup(
@@ -298,6 +336,16 @@ fun AddIngredientPopup(
                 itemToRemove = ""
             },
             onClickCancel = { showAlert = false }
+        )
+    }
+    if (showAlert2){
+        WarningPopup(
+            text = "Discard Unsaved Changes",
+            onClickConfirm = {
+                showAlert2 = false
+                viewModel.removeAddIngredientPopup()
+            },
+            onClickCancel = { showAlert2 = false }
         )
     }
 }
