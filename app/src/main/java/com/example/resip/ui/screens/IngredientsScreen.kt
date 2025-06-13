@@ -2,31 +2,23 @@ package com.example.resip.ui.screens
 
 import androidx.compose.material3.Icon
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
@@ -34,24 +26,20 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.resip.ui.components.ListTypes
 import com.example.resip.ui.utils.ScreenType
 import com.example.resip.ui.viewmodel.IngredientsUiState
 import com.example.resip.ui.viewmodel.IngredientsViewModel
-import com.example.resip.ui.viewmodel.ResipViewModelProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,28 +47,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.window.PopupProperties
 import com.example.resip.R
 import com.example.resip.model.Ingredient
-import com.example.resip.ui.components.ButtonType1
-import com.example.resip.ui.components.ButtonType2
-import com.example.resip.ui.components.Demo_SearchableExposedDropdownMenuBox
+import com.example.resip.ui.components.CancelButton
+import com.example.resip.ui.components.DeleteButton
 import com.example.resip.ui.components.LoadingIndicator
 import com.example.resip.ui.components.NumberTextField
 import com.example.resip.ui.components.ResipPopup
-import com.example.resip.ui.components.SearchableDropDownMenu
 import com.example.resip.ui.components.WarningPopup
-import kotlinx.coroutines.CoroutineScope
-import okhttp3.Dispatcher
-import kotlin.math.max
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
@@ -130,8 +110,11 @@ fun IngredientsList(
 ) {
     val preList = viewModel.getPreIngredients()
     var ownedList = viewModel.getOwnedIngredients()
+
     val uiState = viewModel.uiState.collectAsState()
-    var warningPopup by rememberSaveable { mutableStateOf(false) }
+
+    var ingredientDetailsPopup by rememberSaveable { mutableStateOf("") }
+
     if (uiState.value.isOwnedLoading) {
         LoadingIndicator()
     } else {
@@ -143,37 +126,26 @@ fun IngredientsList(
             items(ownedList) { item ->
                 IngredientCard(
                     item = item,
-                    viewModel = viewModel
+                    viewModel = viewModel,
+                    onClick = {ingredientDetailsPopup = item.name}
                 )
             }
         }
-        val popupItem = ownedList.find { it.name == uiState.value.popupId }
+//       Popups
+        val popupItem = ownedList.find { it.name.equals(ingredientDetailsPopup)  }
         if (popupItem != null) {
-            IngredientPopup(
+            IngredientDetailsPopup(
                 modifier = Modifier,
-                dismissRequest = { viewModel.removePopup() },
+                dismissRequest = { ingredientDetailsPopup = "" },
                 item = popupItem
             )
         }
         if (uiState.value.addIngredientPopup) {
             AddIngredientPopup(
-                dismissRequest = {
-                    warningPopup = true
-                },
                 viewModel = viewModel
             )
-//            Demo_SearchableExposedDropdownMenuBox()
         }
-        if (warningPopup) {
-            WarningPopup(
-                text = "Discard Changes",
-                onClickConfirm = {
-                    warningPopup = false
-                    viewModel.removeAddIngredientPopup()
-                },
-                onClickCancel = { warningPopup = false }
-            )
-        }
+
     }
 }
 
@@ -182,17 +154,14 @@ fun IngredientCard(
     modifier: Modifier = Modifier,
     item: Ingredient,
     viewModel: IngredientsViewModel,
+    onClick: () -> Unit
 ) {
     val uiState = viewModel.uiState.collectAsState()
     Card(
         modifier = modifier
             .padding(dimensionResource(R.dimen.spacing_small))
             .height(dimensionResource(R.dimen.button_height) + dimensionResource(R.dimen.spacing_small) * 2),
-        onClick = {
-            if (uiState.value.popupId == null) {
-                viewModel.loadPopup(item.name)
-            }
-        }
+        onClick = onClick
     ) {
 
         val onValueChange: suspend (Int) -> Unit =
@@ -238,7 +207,7 @@ fun IngredientCard(
 }
 
 @Composable
-fun IngredientPopup(
+fun IngredientDetailsPopup(
     modifier: Modifier = Modifier,
     dismissRequest: () -> Unit,
     item: Ingredient
@@ -258,53 +227,52 @@ fun IngredientPopup(
 @Composable
 fun AddIngredientPopup(
     modifier: Modifier = Modifier,
-    dismissRequest: () -> Unit,
     viewModel: IngredientsViewModel
 ) {
-    var showAlert by rememberSaveable { mutableStateOf(false) }
-    var showAlert2 by rememberSaveable { mutableStateOf(false) }
+    var discardSavedIngredientPopupWarning by rememberSaveable { mutableStateOf(false) }
+    var dismissAddIngredientPopupWarning by rememberSaveable { mutableStateOf(false) }
     var itemToRemove by rememberSaveable { mutableStateOf("") }
+
     ResipPopup(
-        onDismiss = dismissRequest,
+        onDismiss = {dismissAddIngredientPopupWarning = true},
         modifier = modifier
             .padding(dimensionResource(R.dimen.spacing_large))
     ) {
-        var step by rememberSaveable { mutableStateOf(0) }
+        val selectingIngredient = 0
+        val addingPreIngredient = 1
+        val addingOwnedIngredient = 2
+        var step by rememberSaveable { mutableStateOf(selectingIngredient) }
 
-        val PreList by rememberSaveable {mutableStateOf((viewModel.getPreIngredients().map { it -> it.name }))}
-        val OwnedList by rememberSaveable {mutableStateOf (viewModel.getOwnedIngredients().map { it -> it.name }) }
+
+        val preList by rememberSaveable {mutableStateOf((viewModel.getPreIngredients().map { it -> it.name }))}
+        val ownedList by rememberSaveable {mutableStateOf (viewModel.getOwnedIngredients().map { it -> it.name }) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
         ){
-            SearchableDropDownMenu(
-                list = PreList,
-                list2 = OwnedList,
-
-                onClick = { it ->
+            AddIngredientDropdownMenu(
+                preList = preList,
+                ownedList = ownedList,
+                onClickMenuItem = { it ->
                     step = when{
-                        PreList.contains(it) -> 1
-                        OwnedList.contains(it) -> 2
-                        else -> 0
+                        preList.contains(it) -> addingPreIngredient
+                        ownedList.contains(it) -> addingOwnedIngredient
+                        else -> selectingIngredient
                     }
                 },
-                onDelete = { it ->
-                    showAlert = true
+                onDeleteMenuItem = { it ->
+                    discardSavedIngredientPopupWarning = true
                     itemToRemove = it
                 }
             )
+            /* CANCEL AND CONFIRM BUTTONS */
+            CancelButton(
+                onClick = {dismissAddIngredientPopupWarning = true},
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+            )
             when(step) {
-                1 -> {
-
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                    ) {
-                        Icon(Icons.Filled.Check, contentDescription = "Confirm")
-                    }
-                }
-                2-> {
+                addingPreIngredient, addingOwnedIngredient -> {
                     IconButton(
                         onClick = {},
                         modifier = Modifier
@@ -314,38 +282,143 @@ fun AddIngredientPopup(
                     }
                 }
                 else -> {
-
                 }
             }
-            IconButton(
-                onClick = {showAlert2 = true},
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-            ) {
-                Icon(Icons.Filled.Close, contentDescription = "Cancel")
-            }
+
         }
 
     }
-    if (showAlert){
+
+/* POP UPS */
+    if (discardSavedIngredientPopupWarning){
         WarningPopup(
             text = "Discard Saved Ingredient",
             onClickConfirm = {
-                showAlert = false
+                discardSavedIngredientPopupWarning = false
                 viewModel.deleteOwnedIngredient(itemToRemove)
                 itemToRemove = ""
             },
-            onClickCancel = { showAlert = false }
+            onClickCancel = { discardSavedIngredientPopupWarning = false }
         )
     }
-    if (showAlert2){
+    if (dismissAddIngredientPopupWarning){
         WarningPopup(
             text = "Discard Unsaved Changes",
             onClickConfirm = {
-                showAlert2 = false
+                dismissAddIngredientPopupWarning = false
                 viewModel.removeAddIngredientPopup()
             },
-            onClickCancel = { showAlert2 = false }
+            onClickCancel = { dismissAddIngredientPopupWarning = false }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddIngredientDropdownMenu(
+    label: String = "Search",
+    preList: List<String>,
+    ownedList: List<String>,
+    onClickMenuItem: (String) -> Unit,
+    onDeleteMenuItem: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+    var valueInTextfield by rememberSaveable { mutableStateOf("") }
+    var filteredPreList by remember { mutableStateOf(preList) }
+    var filteredOwnedList by remember { mutableStateOf(ownedList) }
+
+    var isFocused by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(valueInTextfield) {
+        filteredPreList = if (valueInTextfield.isEmpty() || preList.contains(valueInTextfield)) {
+            listOf()
+        } else {
+            preList.filter { it.contains(valueInTextfield, ignoreCase = true) }
+        }
+        filteredOwnedList = if (valueInTextfield.isEmpty() || preList.contains(valueInTextfield)) {
+            listOf()
+        } else {
+            ownedList.filter { it.contains(valueInTextfield, ignoreCase = true) }
+        }
+    }
+    // When valueInTextField changes such that the value isn't in either lists, then the
+    // UI needs to reset instead of continuing the addIngredient options
+    // Thus, this onClick function needs to be called here
+    onClickMenuItem(valueInTextfield)
+
+    val focusManager = LocalFocusManager.current
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(dimensionResource(R.dimen.spacing_small))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                focusManager.clearFocus()
+            }
+            .height(dimensionResource(R.dimen.textfield_height))
+    ) {
+        TextField(
+            modifier = Modifier
+                .onFocusChanged { focusState ->
+                    isFocused = focusState.isFocused
+                    menuExpanded = focusState.isFocused
+                },
+            value = valueInTextfield,
+            onValueChange = { it ->
+                valueInTextfield = it
+            },
+            label = {
+                Text(label)
+            },
+            keyboardOptions = KeyboardOptions.Default,
+            shape = if (isFocused) MaterialTheme.shapes.small else MaterialTheme.shapes.medium,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuExpanded) }
+        )
+
+        // Position of Menu is right below the parent Box Composable
+        DropdownMenu(
+            modifier = Modifier
+                .height(200.dp),
+            expanded = menuExpanded,
+            properties = PopupProperties(focusable = false),
+            onDismissRequest = {
+            }
+        ) {
+            filteredPreList.forEach { name ->
+                DropdownMenuItem(
+                    text = { Text(name) },
+                    onClick = {
+                        valueInTextfield = name
+                        focusManager.clearFocus()
+                        onClickMenuItem(name)
+                    }
+                )
+            }
+            HorizontalDivider()
+            filteredOwnedList.forEach { name ->
+                DropdownMenuItem(
+                    text = {
+                        Row (
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(name)
+                            DeleteButton(
+                                onClick = {
+                                    onDeleteMenuItem(name)
+                                }
+                            )
+                        }
+                    },
+                    onClick = {
+                        valueInTextfield = name
+                        focusManager.clearFocus()
+                        onClickMenuItem(valueInTextfield)
+                    }
+                )
+            }
+        }
     }
 }

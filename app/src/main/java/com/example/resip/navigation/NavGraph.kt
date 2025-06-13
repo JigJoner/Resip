@@ -1,6 +1,8 @@
 package com.example.resip.navigation
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,6 +68,7 @@ enum class NavBarItems(
 }
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun ResipNavHost(
     navController: NavHostController,
@@ -75,45 +78,32 @@ fun ResipNavHost(
     listType: ListTypes = ListTypes.Card,
     viewModels: ResipViewModels,
 ) {
-    val focusManager = LocalFocusManager.current
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier
-            .fillMaxSize()
 
-            .clickable(
-                // Make sure this doesn't consume clicks from child components like buttons/textfields
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                focusManager.clearFocus() // Clear focus on tap outside
-            }
     ) {
         composable(route = ResipScreen.Login.name) {
-            Log.d("NAV", "Login")
-
             LoginScreen(
                 screenType = screenType,
                 navController = navController
             )
         }
         composable(route = ResipScreen.HomePage.name) {
-            Log.d("NAV", "HomePage")
             HomePageScreen(
                 modifier = Modifier,
                 screenType = screenType
             )
         }
         composable(route = ResipScreen.Recipe.name) {
-            Log.d("NAV", "Recipe")
             RecipesScreen(
                 modifier = Modifier,
                 screenType = screenType
             )
         }
         composable(route = ResipScreen.Ingredient.name) {
-            Log.d("NAV", "Ingredient")
             IngredientsScreen(
                 modifier = Modifier,
                 screenType = screenType,
@@ -122,14 +112,12 @@ fun ResipNavHost(
             )
         }
         composable(route = ResipScreen.Browse.name) {
-            Log.d("NAV", "Browse")
             BrowseScreen(
                 modifier = Modifier,
                 screenType = screenType
             )
         }
         composable(route = ResipScreen.Setting.name) {
-            Log.d("NAV", "Setting")
         }
 
     }

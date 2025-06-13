@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -41,6 +42,24 @@ fun ResipIconButton(
         Icon(
             imageVector = icon,
             contentDescription = contentDescription
+        )
+    }
+}
+
+@Composable
+fun CancelButton(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+){
+    IconButton(
+        modifier = modifier
+            .height(dimensionResource(R.dimen.button_height))
+            .aspectRatio(1f),
+        onClick = onClick
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Close,
+            contentDescription = "Cancel"
         )
     }
 }

@@ -1,11 +1,14 @@
 package com.example.resip
 
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -58,6 +61,7 @@ import com.example.resip.ui.viewmodel.LoginViewModel
 import com.example.resip.ui.viewmodel.ResipViewModelProvider
 import com.example.resip.ui.viewmodel.ResipViewModels
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResipApp(
@@ -85,6 +89,8 @@ fun ResipApp(
 
 
     val startRoute = NavBarItems.HomePage
+
+    // State of Navbar Selected Visual Effect
     var selectedRoute = rememberSaveable { mutableStateOf(startRoute.ordinal) }
 
     val isShow = if (currentRoute.equals(ResipScreen.Login.name)) 0f else 1f
@@ -139,16 +145,13 @@ fun ResipApp(
                 navIconContent = {
                     IconButton(onClick = {
                         // Popping the navstack doesn't update the currentState State
-                        navController.popBackStack()
-
-                        // Thus, you need to use navController?.currentBackStackEntry?.destination?.route manually
-                        if (!navController?.currentBackStackEntry?.destination?.route.equals(
-                                ResipScreen.Login.name
-                            )
-                        ) {
-                            selectedRoute.value = NavBarItems.valueOf(
-                                navController?.currentBackStackEntry?.destination?.route
-                                    ?: ResipScreen.HomePage.name
+                        val canGoBack = navController.previousBackStackEntry != null
+                                && navController.previousBackStackEntry?.destination?.route != ResipScreen.Login.name
+                        if (canGoBack) {
+                            navController.popBackStack()
+                            selectedRoute.value = ResipScreen.valueOf(
+                                navController.currentBackStackEntry?.destination?.route
+                                    ?: ResipScreen.Login.name
                             ).ordinal
                         }
                     }) {
@@ -160,10 +163,18 @@ fun ResipApp(
 
         }
     ) { innerPadding ->
+        val focusManager = LocalFocusManager.current
         ResipNavHost(
             modifier = modifier
-                .padding(innerPadding),
-
+                .padding(innerPadding)
+                .fillMaxSize()
+                .clickable(
+                    // Make sure this doesn't consume clicks from child components like buttons/textfields
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) {
+                    focusManager.clearFocus() // Clear focus on tap outside
+                },
             navController = navController,
             screenType = screenType,
             startDestination = ResipScreen.Login.name,
@@ -173,11 +184,12 @@ fun ResipApp(
             val currentBackStackEntry = navController.currentBackStackEntry
             val canGoBack = navController.previousBackStackEntry != null
                     && navController.previousBackStackEntry?.destination?.route != ResipScreen.Login.name
-
             if (canGoBack) {
                 navController.popBackStack()
-                selectedRoute.value = ResipScreen.valueOf(navController.currentBackStackEntry?.destination?.route ?: ResipScreen.Login.name).ordinal
-
+                selectedRoute.value = ResipScreen.valueOf(
+                    navController.currentBackStackEntry?.destination?.route
+                        ?: ResipScreen.Login.name
+                ).ordinal
             }
         }
     }

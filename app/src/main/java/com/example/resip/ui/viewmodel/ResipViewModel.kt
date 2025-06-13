@@ -52,13 +52,6 @@ class IngredientsViewModel(private val repo: IngredientRepository) : ViewModel()
         return _uiState.value.preIngredients
     }
 
-    fun loadPopup(name: String){
-        _uiState.value = _uiState.value.copy(popupId = name)
-    }
-
-    fun removePopup(){
-        _uiState.value = _uiState.value.copy(popupId = null)
-    }
 
     fun loadAddIngredientPopup(){
         _uiState.value = _uiState.value.copy(addIngredientPopup = true)
