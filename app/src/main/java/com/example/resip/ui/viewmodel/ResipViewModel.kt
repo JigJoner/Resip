@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.resip.data.repository.IngredientRepository
 import com.example.resip.model.Ingredient
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +38,7 @@ class IngredientsViewModel(private val repo: IngredientRepository) : ViewModel()
     val uiState: StateFlow<IngredientsUiState> = _uiState.asStateFlow()
 
     fun addIngredientPopup(switch: Boolean){
-        _uiState.value = _uiState.value.copy(addIngredientPopup = switch)
+        _uiState.value = _uiState.value.copy(addIngredientMode = switch)
     }
 
     //By calling this, we recompose automatically
@@ -52,13 +53,23 @@ class IngredientsViewModel(private val repo: IngredientRepository) : ViewModel()
         return _uiState.value.preIngredients
     }
 
-
-    fun loadAddIngredientPopup(){
-        _uiState.value = _uiState.value.copy(addIngredientPopup = true)
+    fun getPreIngredient(name: String):Flow<Ingredient>{
+        return repo.getPreIngredient(name)
     }
 
-    fun removeAddIngredientPopup(){
-        _uiState.value = _uiState.value.copy(addIngredientPopup = false)
+    fun searchIngredientModeOn(){
+        _uiState.value = _uiState.value.copy(searchIngredientMode = true)
+    }
+    fun searchIngredientModeOff(){
+        _uiState.value = _uiState.value.copy(searchIngredientMode = false)
+    }
+
+    fun addIngredientModeOn(){
+        _uiState.value = _uiState.value.copy(addIngredientMode = true)
+    }
+
+    fun addIngredientModeOff(){
+        _uiState.value = _uiState.value.copy(addIngredientMode = false)
     }
 
     fun deleteOwnedIngredient(name: String){

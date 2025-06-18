@@ -14,7 +14,7 @@ enum class MeasurementUnit(val unit: String){
 @Serializable
 data class Ingredient(
     val name: String,
-    val unit: MeasurementUnit,
+    val unit: MeasurementUnit = MeasurementUnit.ML,
     val quantity: Int,
 //    @SerialName(value = "is_custom") val isCustom: Boolean,
 //    @SerialName(value = "is_owned") val isOwned: Boolean

@@ -23,7 +23,9 @@ data class IngredientsUiState(
     val error: String? = null,
     val ownedIngredients: List<Ingredient> = emptyList(),
     val preIngredients: List<Ingredient> = emptyList(),
-    val addIngredientPopup: Boolean = false,
+
+    val addIngredientMode: Boolean = false,
+    val searchIngredientMode: Boolean = false
 )
 data class BrowseUiState(
     val isLoading: Boolean = false,

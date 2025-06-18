@@ -4,32 +4,39 @@ import androidx.compose.material3.Icon
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -42,17 +49,21 @@ import com.example.resip.ui.viewmodel.IngredientsUiState
 import com.example.resip.ui.viewmodel.IngredientsViewModel
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.PopupProperties
 import com.example.resip.R
 import com.example.resip.model.Ingredient
 import com.example.resip.ui.components.CancelButton
@@ -61,6 +72,8 @@ import com.example.resip.ui.components.LoadingIndicator
 import com.example.resip.ui.components.NumberTextField
 import com.example.resip.ui.components.ResipPopup
 import com.example.resip.ui.components.WarningPopup
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
@@ -111,6 +124,7 @@ fun IngredientsList(
     val preList = viewModel.getPreIngredients()
     var ownedList = viewModel.getOwnedIngredients()
 
+
     val uiState = viewModel.uiState.collectAsState()
 
     var ingredientDetailsPopup by rememberSaveable { mutableStateOf("") }
@@ -127,12 +141,12 @@ fun IngredientsList(
                 IngredientCard(
                     item = item,
                     viewModel = viewModel,
-                    onClick = {ingredientDetailsPopup = item.name}
+                    onClick = { ingredientDetailsPopup = item.name }
                 )
             }
         }
 //       Popups
-        val popupItem = ownedList.find { it.name.equals(ingredientDetailsPopup)  }
+        val popupItem = ownedList.find { it.name.equals(ingredientDetailsPopup) }
         if (popupItem != null) {
             IngredientDetailsPopup(
                 modifier = Modifier,
@@ -140,12 +154,14 @@ fun IngredientsList(
                 item = popupItem
             )
         }
-        if (uiState.value.addIngredientPopup) {
+        if (uiState.value.addIngredientMode) {
             AddIngredientPopup(
                 viewModel = viewModel
             )
         }
+        if (uiState.value.searchIngredientMode) {
 
+        }
     }
 }
 
@@ -234,44 +250,122 @@ fun AddIngredientPopup(
     var itemToRemove by rememberSaveable { mutableStateOf("") }
 
     ResipPopup(
-        onDismiss = {dismissAddIngredientPopupWarning = true},
+        onDismiss = { dismissAddIngredientPopupWarning = true },
         modifier = modifier
             .padding(dimensionResource(R.dimen.spacing_large))
     ) {
         val selectingIngredient = 0
         val addingPreIngredient = 1
         val addingOwnedIngredient = 2
+        val addingNewIngredient = 3
         var step by rememberSaveable { mutableStateOf(selectingIngredient) }
 
-
-        val preList by rememberSaveable {mutableStateOf((viewModel.getPreIngredients().map { it -> it.name }))}
-        val ownedList by rememberSaveable {mutableStateOf (viewModel.getOwnedIngredients().map { it -> it.name }) }
+        val preList by remember  {
+            mutableStateOf(
+                (viewModel.getPreIngredients().map { it -> it.name })
+            )
+        }
+        val ownedList by remember  {
+            mutableStateOf(
+                viewModel.getOwnedIngredients().map { it -> it.name })
+        }
+        var toAddList = rememberSaveable  {
+            mutableStateOf(listOf<String>())
+        }
+        var toIncrementList = rememberSaveable  {
+            mutableStateOf(listOf<String>())
+        }
+        val scope = rememberCoroutineScope()
         Box(
             modifier = Modifier
                 .fillMaxSize()
-        ){
-            AddIngredientDropdownMenu(
-                preList = preList,
-                ownedList = ownedList,
-                onClickMenuItem = { it ->
-                    step = when{
-                        preList.contains(it) -> addingPreIngredient
-                        ownedList.contains(it) -> addingOwnedIngredient
-                        else -> selectingIngredient
-                    }
-                },
-                onDeleteMenuItem = { it ->
-                    discardSavedIngredientPopupWarning = true
-                    itemToRemove = it
+        ) {
+            Column() {
+                Text(
+                    text = "Add Ingredients",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                AddIngredientDropdownMenu(
+                    modifier = Modifier
+                        .heightIn(max = dimensionResource(R.dimen.textfield_height) * 5),
+                    preList = preList,
+                    ownedList = ownedList,
+                    onClickMenuItem = { it ->
+                        when {
+                            preList.contains(it) ->{
+                                if (!(toIncrementList.value.contains(it))){
+                                    toIncrementList.value = toIncrementList.value + it
+                                }
+                            }
+                            ownedList.contains(it) -> {
+                                if (!(toAddList.value.contains(it))){
+                                    toAddList.value = toAddList.value + it
+                                }
+                            }
+                        }
+                        step = when {
+                            preList.contains(it) -> addingPreIngredient
+                            ownedList.contains(it) -> addingOwnedIngredient
+                            else -> selectingIngredient
+                        }
+                    },
+                    onDeleteMenuItem = { it ->
+                        discardSavedIngredientPopupWarning = true
+                        itemToRemove = it
+                    },
+                    onClickNewItem = { step = addingNewIngredient }
+                )
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(
+                            top = dimensionResource(R.dimen.spacing_small),
+                            bottom = dimensionResource(R.dimen.spacing_small)
+                        ),
+                    thickness = 3.dp
+                )
+                if (toIncrementList.value.isNotEmpty()){
+                    Text(
+                        text = "Increment Quantity",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            )
+
+                LazyColumn {
+                    toIncrementList.value.forEach {
+                        item {
+                            Row {
+                                Text("TEST")
+                            }
+                        }
+                    }
+                }
+                if (toAddList.value.isNotEmpty()){
+                    Text(
+                        text = "Add New Ingredient",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                LazyColumn {
+                    toAddList.value.forEach {
+                        item {
+                            Row {
+                                Text("TEST")
+                            }
+                        }
+                    }
+                }
+            }
+
             /* CANCEL AND CONFIRM BUTTONS */
             CancelButton(
-                onClick = {dismissAddIngredientPopupWarning = true},
+                onClick = { dismissAddIngredientPopupWarning = true },
                 modifier = Modifier
                     .align(Alignment.BottomStart)
             )
-            when(step) {
+            when (step) {
                 addingPreIngredient, addingOwnedIngredient -> {
                     IconButton(
                         onClick = {},
@@ -281,16 +375,23 @@ fun AddIngredientPopup(
                         Icon(Icons.Filled.Check, contentDescription = "Confirm")
                     }
                 }
+
+                addingPreIngredient, addingOwnedIngredient -> {
+//                    NumberTextField(
+//                        modifier = Modifier,
+//                        currentQuantity = 0,
+//
+//                    )
+                }
+
                 else -> {
                 }
             }
-
         }
-
     }
 
-/* POP UPS */
-    if (discardSavedIngredientPopupWarning){
+    /* POP UPS */
+    if (discardSavedIngredientPopupWarning) {
         WarningPopup(
             text = "Discard Saved Ingredient",
             onClickConfirm = {
@@ -301,12 +402,12 @@ fun AddIngredientPopup(
             onClickCancel = { discardSavedIngredientPopupWarning = false }
         )
     }
-    if (dismissAddIngredientPopupWarning){
+    if (dismissAddIngredientPopupWarning) {
         WarningPopup(
             text = "Discard Unsaved Changes",
             onClickConfirm = {
                 dismissAddIngredientPopupWarning = false
-                viewModel.removeAddIngredientPopup()
+                viewModel.addIngredientModeOff()
             },
             onClickCancel = { dismissAddIngredientPopupWarning = false }
         )
@@ -321,104 +422,139 @@ fun AddIngredientDropdownMenu(
     ownedList: List<String>,
     onClickMenuItem: (String) -> Unit,
     onDeleteMenuItem: (String) -> Unit,
+    onClickNewItem: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    var valueInTextfield by rememberSaveable { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf("") }
     var filteredPreList by remember { mutableStateOf(preList) }
     var filteredOwnedList by remember { mutableStateOf(ownedList) }
+    var expanded by remember { mutableStateOf(false) }
 
-    var isFocused by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(valueInTextfield) {
-        filteredPreList = if (valueInTextfield.isEmpty() || preList.contains(valueInTextfield)) {
+    LaunchedEffect(searchQuery) {
+        filteredPreList = if (searchQuery.isEmpty() || preList.contains(searchQuery)) {
             listOf()
         } else {
-            preList.filter { it.contains(valueInTextfield, ignoreCase = true) }
+            preList.filter { it.contains(searchQuery, ignoreCase = true) }
         }
-        filteredOwnedList = if (valueInTextfield.isEmpty() || preList.contains(valueInTextfield)) {
+        filteredOwnedList = if (searchQuery.isEmpty() || preList.contains(searchQuery)) {
             listOf()
         } else {
-            ownedList.filter { it.contains(valueInTextfield, ignoreCase = true) }
+            ownedList.filter { it.contains(searchQuery, ignoreCase = true) }
         }
     }
-    // When valueInTextField changes such that the value isn't in either lists, then the
-    // UI needs to reset instead of continuing the addIngredient options
-    // Thus, this onClick function needs to be called here
-    onClickMenuItem(valueInTextfield)
 
     val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
+
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(dimensionResource(R.dimen.spacing_small))
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                focusManager.clearFocus()
+            .onFocusChanged{focusState ->
+                if (!focusState.isFocused){
+                    expanded = false
+                }
             }
-            .height(dimensionResource(R.dimen.textfield_height))
-    ) {
-        TextField(
+    ){
+        SearchBar(
             modifier = Modifier
-                .onFocusChanged { focusState ->
-                    isFocused = focusState.isFocused
-                    menuExpanded = focusState.isFocused
-                },
-            value = valueInTextfield,
-            onValueChange = { it ->
-                valueInTextfield = it
-            },
-            label = {
-                Text(label)
-            },
-            keyboardOptions = KeyboardOptions.Default,
-            shape = if (isFocused) MaterialTheme.shapes.small else MaterialTheme.shapes.medium,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuExpanded) }
-        )
-
-        // Position of Menu is right below the parent Box Composable
-        DropdownMenu(
-            modifier = Modifier
-                .height(200.dp),
-            expanded = menuExpanded,
-            properties = PopupProperties(focusable = false),
-            onDismissRequest = {
-            }
-        ) {
-            filteredPreList.forEach { name ->
-                DropdownMenuItem(
-                    text = { Text(name) },
-                    onClick = {
-                        valueInTextfield = name
-                        focusManager.clearFocus()
-                        onClickMenuItem(name)
-                    }
-                )
-            }
-            HorizontalDivider()
-            filteredOwnedList.forEach { name ->
-                DropdownMenuItem(
-                    text = {
-                        Row (
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(name)
-                            DeleteButton(
-                                onClick = {
-                                    onDeleteMenuItem(name)
-                                }
-                            )
-                        }
+                .align(Alignment.TopCenter),
+            inputField = {
+                // Customizable input field implementation
+                SearchBarDefaults.InputField(
+                    modifier = Modifier,
+//                        .padding(top = 0.dp)
+//                        .height(56.dp)
+//                        .heightIn(max = dimensionResource(R.dimen.textfield_height)),
+                    query = searchQuery,
+                    onQueryChange = {
+                        it ->
+                        searchQuery = it
                     },
-                    onClick = {
-                        valueInTextfield = name
-                        focusManager.clearFocus()
-                        onClickMenuItem(valueInTextfield)
-                    }
+                    onSearch = {
+//                        onSearch(query)
+                        expanded = false
+                    },
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+//                    placeholder = placeholder,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = null
+                        )
+                        },
+//                    trailingIcon = trailingIcon
                 )
+            },
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+        ){
+            LazyColumn {
+                item{
+                    ListItem(
+                        headlineContent = {
+                            Text("Add New")
+                        },
+                        leadingContent = {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null
+                            )
+                        },
+                        modifier = Modifier
+                            .clickable{
+                                focusManager.clearFocus()
+                                onClickNewItem()
+                            }
+                    )
+                }
+                filteredPreList.forEach { name ->
+                    item{
+                        ListItem(
+                            headlineContent = {
+                                Text(name)
+                            },
+                            modifier = Modifier
+                                .clickable{
+                                    searchQuery = name
+                                    focusManager.clearFocus()
+                                    onClickMenuItem(name)
+                                }
+                        )
+                    }
+                }
+                item{
+                    HorizontalDivider()
+                }
+                filteredOwnedList.forEach { name ->
+                    item {
+                        ListItem(
+                            headlineContent = {
+                                Text(name)
+                            },
+                            trailingContent = {
+                                DeleteButton(
+                                    onClick = {
+                                        onDeleteMenuItem(name)
+                                    }
+                                )
+                            },
+                            modifier = Modifier
+                                .clickable {
+                                    searchQuery = name
+                                    focusManager.clearFocus()
+                                    onClickMenuItem(searchQuery)
+                                }
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+fun SearchIngredient(
+
+) {
+
 }

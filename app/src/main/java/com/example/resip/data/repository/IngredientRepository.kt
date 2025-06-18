@@ -22,6 +22,9 @@ class IngredientRepository(
     fun getAllPreIngredientsStream(): Flow<List<Ingredient>> {
         return preIngredientDao.getAllIngredients().map { it.map { it.toDomain() } }
     }
+    fun getPreIngredient(name: String): Flow<Ingredient>{
+        return preIngredientDao.getIngredient(name).map{ it.toDomain()}
+    }
 
     suspend fun addPre(item: Ingredient){
         preIngredientDao.insert(item.toPreIngredientEntity())
